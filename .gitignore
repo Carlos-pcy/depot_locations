@@ -193,3 +193,5 @@ pyrightconfig.json
 .ionide
 
 # End of https://www.toptal.com/developers/gitignore/api/visualstudiocode,python
+# 忽略 .gitignore 文件
+.gitignore
