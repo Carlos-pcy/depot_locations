@@ -4,6 +4,9 @@ from typing import TYPE_CHECKING, List, Optional
 
 from plotting_utilities import plot_country, plot_path
 
+import math
+import warnings
+
 if TYPE_CHECKING:
     from pathlib import Path
 
@@ -16,8 +19,8 @@ def travel_time(
     locations_in_dest_region,
     speed,
 ):
-    raise NotImplementedError
-
+    travel_time = distance / (3600 * speed) *(1+(different_regions * locations_in_dest_region)/10)
+    return travel_time
 
 class Location:
     def __repr__(self):
@@ -33,17 +36,69 @@ class Location:
         return self.__str__()
 
     def __str__(self):
-        raise NotImplementedError
+        if self.settlement:
+            label = "settlement"
+        else:
+            label = "depot"
+        
+        theta_over_pi = self.theta / math.pi
+
+        return f"{self.name} [{label}] in {self.region} @ ({self.r:.2f} m, {theta_over_pi:.2f} pi) "
 
     def distance_to(self, other):
-        raise NotImplementedError
+        distance = math.sqrt(self.r ** 2 + other.r ** 2 - 2 * self.r * other.r * math.cos(self.theta - other.theta) )
+        return distance
 
+    def capitalize_string(self, input_string):
+       
+        capitalized_string = input_string.title()  # Capitalize each word
+        if capitalized_string != input_string:
+            warnings.warn(f"The string '{input_string}' was updated to '{capitalized_string}'.")
+        return capitalized_string
+
+
+    def __init__(self, name, region, r, theta, depot):
+        if not isinstance(name, str):
+            raise TypeError("Name should be a string.")
+         
+        if not isinstance(region, str):
+            raise TypeError("Region should be a string.")
+         
+        self.name = self.capitalize_string(name)
+        self.region = self.capitalize_string(region)
+    
+        try:
+            self.r = float(r)
+        except ValueError:
+            raise ValueError ("Polar radius(r) must be a number.")
+
+        if self.r < 0:
+            raise ValueError("Polar radius(r) must be non-negative.")
+    
+        try:
+            self.theta = float(theta)
+        except ValueError:
+            raise ValueError ("Polar angle(theta) must be a number.")
+
+        if self.theta < -math.pi or self.theta > math.pi:
+            raise ValueError("Polar angle(theta) must be between {-math.pi} and {math.pi}.")
+
+        if not isinstance(depot, bool):
+            raise TypeError("Depot flag must be a boolean.")
+        
+        self.depot = depot
+
+    @property
+    def settlement(self):
+        return not self.depot
+    
+
+    
 
 class Country:
 
     def travel_time(self, start_location, end_location):
         raise NotImplementedError
-
     def fastest_trip_from(
         self,
         current_location,
